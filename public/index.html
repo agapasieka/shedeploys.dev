@@ -114,7 +114,7 @@
   .card{
     position:relative;background:var(--card);border:1px solid var(--border);
     border-radius:16px;padding:24px 22px 20px;text-decoration:none;color:inherit;
-    display:flex;flex-direction:column;min-height:218px;overflow:hidden;
+    display:flex;flex-direction:column;min-height:244px;overflow:hidden;
     transition:transform .25s cubic-bezier(.2,.7,.2,1),border-color .25s,background .25s;
   }
   .card::before{content:"";position:absolute;inset:0;border-radius:16px;padding:1px;
@@ -130,7 +130,14 @@
     padding:4px 9px;border-radius:999px;margin-bottom:16px}
   .card h3{font-size:1.12rem;font-weight:700;letter-spacing:-.4px;line-height:1.25;margin-bottom:9px}
   .card p{font-size:.9rem;color:var(--muted);flex:1}
-  .card .meta{display:flex;align-items:center;justify-content:space-between;margin-top:18px;
+  /* byline */
+  .byline{display:flex;align-items:center;gap:8px;margin-top:16px}
+  .byline .av{width:22px;height:22px;border-radius:50%;background:var(--grad);flex:0 0 auto;
+    display:flex;align-items:center;justify-content:center;color:#0a0a12;font-weight:700;
+    font-size:.6rem;font-family:'JetBrains Mono',monospace;letter-spacing:.3px}
+  .byline .nm{font-size:.82rem;color:var(--text);font-weight:500}
+  .card .meta{display:flex;align-items:center;justify-content:space-between;margin-top:14px;
+    padding-top:14px;border-top:1px solid var(--border);
     font-family:'JetBrains Mono',monospace;font-size:.75rem;color:var(--faint)}
   .card .read{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-weight:500}
   .arrow{transition:transform .25s,color .25s}
@@ -184,42 +191,49 @@
         <span class="chip">Firebase</span>
         <h3>Host a blog like this on a budget</h3>
         <p>Ship a fast static site on Firebase Hosting with a custom domain and CI/CD — for about the price of a coffee a year.</p>
+        <div class="byline"><span class="av">AP</span><span class="nm">Aga Pasieka</span></div>
         <div class="meta"><span>Nov 2026</span><span class="read">read <span class="arrow">→</span></span></div>
       </a>
       <a class="card" href="#">
         <span class="chip">Kubernetes</span>
         <h3>Zero-downtime deploys with Argo Rollouts</h3>
         <p>Blue-green and canary strategies that let you ship on a Friday and actually sleep.</p>
+        <div class="byline"><span class="av">AP</span><span class="nm">Aga Pasieka</span></div>
         <div class="meta"><span>Nov 2026</span><span class="read">read <span class="arrow">→</span></span></div>
       </a>
       <a class="card" href="#">
         <span class="chip">Terraform</span>
         <h3>Taming Terraform state before it tames you</h3>
         <p>Remote backends, locking, and the workspace patterns I wish I'd set up on day one.</p>
+        <div class="byline"><span class="av">AP</span><span class="nm">Aga Pasieka</span></div>
         <div class="meta"><span>Oct 2026</span><span class="read">read <span class="arrow">→</span></span></div>
       </a>
       <a class="card" href="#">
         <span class="chip">CI/CD</span>
         <h3>My GitHub Actions setup, end to end</h3>
         <p>From a push to a live deploy — the exact pipeline running this very site.</p>
+        <div class="byline"><span class="av">AP</span><span class="nm">Aga Pasieka</span></div>
         <div class="meta"><span>Oct 2026</span><span class="read">read <span class="arrow">→</span></span></div>
       </a>
       <a class="card" href="#">
         <span class="chip">Observability</span>
         <h3>Observability on a startup budget</h3>
         <p>Metrics, logs and traces that answer real questions without a six-figure bill.</p>
+        <div class="byline"><span class="av">AP</span><span class="nm">Aga Pasieka</span></div>
         <div class="meta"><span>Sep 2026</span><span class="read">read <span class="arrow">→</span></span></div>
       </a>
       <a class="card" href="#">
         <span class="chip">Helm</span>
         <h3>From YAML hell to a clean Helm chart</h3>
         <p>Templating without tears — values, helpers, and the structure that scales.</p>
+        <div class="byline"><span class="av">AP</span><span class="nm">Aga Pasieka</span></div>
         <div class="meta"><span>Sep 2026</span><span class="read">read <span class="arrow">→</span></span></div>
       </a>
       <a class="card" href="#">
         <span class="chip">Platform</span>
         <h3>Kubernetes for the anxious engineer</h3>
         <p>The mental model that finally made pods, services and ingress click for me.</p>
+        <div class="byline"><span class="av">AP</span><span class="nm">Aga Pasieka</span></div>
         <div class="meta"><span>Aug 2026</span><span class="read">read <span class="arrow">→</span></span></div>
       </a>
     </div>
@@ -231,7 +245,7 @@
   </footer>
 </div>
 
-<div class="sample-note">◈ sample posts — swap in your real Medium links when ready</div>
+<div class="sample-note">◈ sample posts — swap in your real Medium links &amp; authors when ready</div>
 
 <script>
   (function(){
