@@ -4,7 +4,6 @@ A single static page, hosted on
 **Firebase Hosting**, deployed automatically from GitHub on every push to `main`.
 
 - **Live:** https://shedeploys.dev
-- **CV:** https://cv.shedeploys.dev (served separately from GitHub Pages)
 
 ## Stack
 
