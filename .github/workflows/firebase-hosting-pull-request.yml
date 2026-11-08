@@ -1,0 +1,24 @@
+name: Deploy preview to Firebase Hosting on PR
+
+# Deploys every pull request to a temporary Firebase Hosting preview
+# channel and comments the preview URL on the PR. Live deploys (on merge
+# to main) are handled separately by deploy.yml.
+on: pull_request
+
+permissions:
+  checks: write
+  contents: read
+  pull-requests: write
+
+jobs:
+  preview:
+    # Skip PRs from forks — they can't access the service-account secret.
+    if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: FirebaseExtended/action-hosting-deploy@v0
+        with:
+          repoToken: ${{ secrets.GITHUB_TOKEN }}
+          firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SHEDEPLOYS_DEV }}
+          projectId: shedeploys-dev
