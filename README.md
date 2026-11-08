@@ -1,6 +1,6 @@
 # shedeploys.dev
 
-Personal landing page + writing hub for **Aga Pasieka** — a single static page, hosted on
+A single static page, hosted on
 **Firebase Hosting**, deployed automatically from GitHub on every push to `main`.
 
 - **Live:** https://shedeploys.dev
