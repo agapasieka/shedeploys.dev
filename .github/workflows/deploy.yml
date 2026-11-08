@@ -1,9 +1,9 @@
 name: Deploy to Firebase Hosting
 
-# Deploys the site to the live channel on every push to main.
+# Deploys the site to the live channel on every push to main (or master).
 on:
   push:
-    branches: [ main ]
+    branches: [ main, master ]
 
 permissions:
   contents: read
