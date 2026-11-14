@@ -1,0 +1,102 @@
+name: Renovate major auto-merge
+
+# For Renovate MAJOR-version PRs only: Claude reviews the upgrade, health-checks
+# the Firebase PR preview, and auto-merges if everything looks safe. Minor/patch
+# updates are auto-merged by Renovate itself and never reach this workflow.
+#
+# Requires: ANTHROPIC_API_KEY secret + the Claude GitHub App installed.
+
+on:
+  pull_request:
+    types: [opened, labeled, synchronize, reopened]
+
+permissions:
+  contents: write          # merge the PR
+  pull-requests: write     # approve / comment
+  checks: read             # read status checks
+  actions: read            # read CI results
+  id-token: write
+
+concurrency:
+  group: renovate-automerge-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  review-merge:
+    # Only Renovate's own major-update PRs, and never from forks.
+    if: >-
+      github.event.pull_request.user.login == 'agapasieka-renovate[bot]' &&
+      contains(github.event.pull_request.labels.*.name, 'major-update') &&
+      github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wait for Firebase preview and capture its URL
+        id: preview
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          PR: ${{ github.event.pull_request.number }}
+        run: |
+          # The Firebase preview workflow comments the preview URL on the PR
+          # once the channel is deployed. Poll for it (up to ~10 minutes).
+          url=""
+          for i in $(seq 1 40); do
+            url=$(gh api "repos/$REPO/issues/$PR/comments" --paginate --jq '.[].body' 2>/dev/null \
+              | grep -oiE 'https://[a-z0-9.-]+--[a-z0-9-]+\.web\.app' | tail -1 || true)
+            if [ -n "$url" ]; then break; fi
+            echo "Preview not ready yet (attempt $i)..."
+            sleep 15
+          done
+          echo "preview_url=$url" >> "$GITHUB_OUTPUT"
+          if [ -z "$url" ]; then
+            echo "::warning::No Firebase preview URL found after waiting."
+          else
+            echo "Preview URL: $url"
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Claude review + merge
+        uses: anthropics/claude-code-action@v1
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          additional_permissions: |
+            actions: read
+          claude_args: >-
+            --allowedTools "Bash"
+          prompt: |
+            You are the release gatekeeper for a MAJOR dependency-update pull request
+            opened by Renovate: PR #${{ github.event.pull_request.number }} in
+            ${{ github.repository }}.
+
+            Firebase preview deployment URL: "${{ steps.preview.outputs.preview_url }}"
+            (empty means no preview was produced).
+
+            Work through these steps and be conservative — when in doubt, do NOT merge:
+
+            1. DIFF & CHANGELOG. Use `gh pr diff` and `gh pr view` to see what package
+               is upgraded and across which major versions. Read its release notes /
+               changelog for that range and identify breaking changes that could
+               plausibly affect THIS project (check how the package is used in the code).
+
+            2. CHECKS. Run `gh pr checks ${{ github.event.pull_request.number }}`.
+               If any required check is failing or still pending, do NOT merge.
+
+            3. PREVIEW HEALTH. If a preview URL was provided, `curl -sS -o /dev/null -w "%{http_code}"`
+               it and also fetch the body. Confirm it returns 200 and renders the real
+               site (not a Firebase error / "Site Not Found" page). If the URL is empty
+               or the preview is unhealthy, do NOT merge.
+
+            4. DECIDE.
+               - SAFE (no concerning breaking changes, checks green, preview healthy):
+                 approve and merge with
+                 `gh pr review ${{ github.event.pull_request.number }} --approve -b "Automated review: safe major update, preview healthy."`
+                 then `gh pr merge ${{ github.event.pull_request.number }} --squash`.
+                 Post a brief comment summarising what you checked and why it was safe.
+               - NOT SAFE / UNSURE: post a comment with `gh pr comment` explaining exactly
+                 what blocked it (named breaking change, failing check, or unhealthy
+                 preview) and leave the PR open for a human. Do NOT merge.
