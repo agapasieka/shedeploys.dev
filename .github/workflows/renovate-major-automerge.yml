@@ -4,17 +4,21 @@ name: Renovate major auto-merge
 # the Firebase PR preview, and auto-merges if everything looks safe. Minor/patch
 # updates are auto-merged by Renovate itself and never reach this workflow.
 #
-# Requires: ANTHROPIC_API_KEY secret + the Claude GitHub App installed.
+# The merge is performed with the Renovate GitHub App token (NOT the default
+# GITHUB_TOKEN) so that the push to main still triggers the live deploy
+# workflow. Requires these repo secrets:
+#   ANTHROPIC_API_KEY, RENOVATE_APP_ID, RENOVATE_APP_PRIVATE_KEY
+# plus the Claude GitHub App installed.
 
 on:
   pull_request:
     types: [opened, labeled, synchronize, reopened]
 
 permissions:
-  contents: write          # merge the PR
-  pull-requests: write     # approve / comment
-  checks: read             # read status checks
-  actions: read            # read CI results
+  contents: read
+  pull-requests: read
+  checks: read
+  actions: read
   id-token: write
 
 concurrency:
@@ -54,6 +58,14 @@ jobs:
             echo "Preview URL: $url"
           fi
 
+      - name: Mint Renovate App token (so the merge triggers the deploy)
+        id: app-token
+        uses: actions/create-github-app-token@v1
+        with:
+          app-id: ${{ secrets.RENOVATE_APP_ID }}
+          private-key: ${{ secrets.RENOVATE_APP_PRIVATE_KEY }}
+          owner: ${{ github.repository_owner }}
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
@@ -64,6 +76,8 @@ jobs:
         uses: anthropics/claude-code-action@v1
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          # Merge with the App token so the push to main fires the deploy workflow.
+          github_token: ${{ steps.app-token.outputs.token }}
           additional_permissions: |
             actions: read
           claude_args: >-
@@ -93,10 +107,11 @@ jobs:
 
             4. DECIDE.
                - SAFE (no concerning breaking changes, checks green, preview healthy):
-                 approve and merge with
-                 `gh pr review ${{ github.event.pull_request.number }} --approve -b "Automated review: safe major update, preview healthy."`
-                 then `gh pr merge ${{ github.event.pull_request.number }} --squash`.
-                 Post a brief comment summarising what you checked and why it was safe.
+                 merge with
+                 `gh pr merge ${{ github.event.pull_request.number }} --squash`,
+                 then post a brief `gh pr comment` summarising what you checked and why
+                 it was safe. (Do not use `gh pr review --approve`: the token belongs to
+                 the PR author, which cannot approve its own PR.)
                - NOT SAFE / UNSURE: post a comment with `gh pr comment` explaining exactly
                  what blocked it (named breaking change, failing check, or unhealthy
                  preview) and leave the PR open for a human. Do NOT merge.
