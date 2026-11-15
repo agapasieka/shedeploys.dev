@@ -6,18 +6,22 @@ name: Deploy preview to Firebase Hosting on PR
 on: pull_request
 
 permissions:
-  checks: write
   contents: read
-  pull-requests: write
 
 jobs:
   preview:
     # Skip PRs from forks — they can't access the service-account secret.
     if: ${{ github.event.pull_request.head.repo.full_name == github.repository }}
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write # report the preview deploy as a check
+      pull-requests: write # comment the preview URL on the PR
     steps:
-      - uses: actions/checkout@v4
-      - uses: FirebaseExtended/action-hosting-deploy@v0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - uses: FirebaseExtended/action-hosting-deploy@500ac625ca2dd40cbd15f7659af953801858032a # v0.11.0
         with:
           repoToken: ${{ secrets.GITHUB_TOKEN }}
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_SHEDEPLOYS_DEV }}
