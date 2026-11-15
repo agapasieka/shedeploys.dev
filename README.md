@@ -59,6 +59,24 @@ It asks for the repo (`agapasieka/shedeploys.dev`), creates a service account, s
 secret in GitHub for you, and writes the workflow files. (The committed `deploy.yml` here does
 the same thing — if you use `firebase init hosting:github`, let it overwrite or keep just one.)
 
+## Security
+
+Found a vulnerability? Please report it privately, as described in [SECURITY.md](SECURITY.md).
+
+This repo runs the same guardrails as described in
+[The security guardrails I put on every public GitHub repo](https://agnieszkapasieka.medium.com/the-security-guardrails-i-put-on-every-public-github-repo-5ae60074857e):
+
+| Guardrail | Where |
+| --- | --- |
+| Secret scanning + push protection | Repo settings |
+| gitleaks (second layer, pinned + checksum-verified) | `.github/workflows/gitleaks.yml` |
+| Dependency updates | Renovate via the shared `infra-renovate` preset (`renovate.json`) |
+| Every action pinned to a commit SHA | all workflows |
+| Least-privilege tokens (read-only by default, write per job) | all workflows |
+| OpenSSF Scorecard | `.github/workflows/scorecard.yml` |
+| Claude PR review (needs the `CLAUDE_CODE_OAUTH_TOKEN` secret) | `.github/workflows/claude-review.yml` |
+| CodeQL, branch protection, private vulnerability reporting | Repo settings |
+
 ---
 
 # 📝 Blog draft — "How to host a simple blog page on Firebase Hosting (on a budget)"
